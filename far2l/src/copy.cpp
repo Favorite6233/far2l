@@ -1794,6 +1794,8 @@ void ShellCopy::Start(const std::shared_ptr<ShellCopy> &self, Panel *SrcPanel,
 
 		try {
 			std::thread([self, progress, taskId, Move, AddSlash, CDP, strSelName, ShowCopyTime]() mutable {
+				// sudo region is per-thread, region held by the UI thread doesn't cover this one
+				SudoClientRegion sdc_rgn;
 				try {
 					self->PerformCopy(Move, AddSlash, CDP.SelCount, CDP.FolderPresent,
 							CDP.FileAttr, strSelName, ShowCopyTime);

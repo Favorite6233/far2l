@@ -260,6 +260,9 @@ With help of:
       <scheme name="ConfString">
 <!--inherit scheme="ConfCore"-->
          <regexp match="/(&#34;&#34;|\\\\|\\&#34;)/" region0="StringContent"/>
+         <block start="/(\{)/" end="/(\})|$/" scheme="ConfString" region01="start" region11="end"/>
+         <block start="/(\()/" end="/(\))|$/" scheme="ConfString" region01="start" region11="end"/>
+         <block start="/(\[)/" end="/(\])|$/" scheme="ConfString" region01="start" region11="end"/>
       </scheme>
 
       <scheme name="ConfRight">
@@ -268,6 +271,9 @@ With help of:
 <!--Timur: Hack justt for ignore 'pseudo' hex digits as "Add", "dbf" etc..-->
          <regexp match="/\b([A-Fa-f]+[^\d])?!(0x)?[\da-fA-F]+\b/i" region0="Number"/>
          <inherit scheme="ConfCommonRight"/>
+         <block start="/(\{)/" end="/(\})|$/" scheme="ConfRight" region00="SymbolStrong" region01="start" region10="SymbolStrong" region11="end"/>
+         <block start="/(\()/" end="/(\))|$/" scheme="ConfRight" region00="Symbol" region01="start" region10="Symbol" region11="end"/>
+         <block start="/(\[)/" end="/(\])|$/" scheme="ConfRight" region00="Symbol" region01="start" region10="Symbol" region11="end"/>
          <keywords ignorecase="yes" region="Comment">
             <word name="DWord"/>
             <word name="Hex"/>
