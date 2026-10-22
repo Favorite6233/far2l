@@ -1,0 +1,157 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE hrc PUBLIC "-//Cail Lomecb//DTD Colorer HRC take5//EN"
+  "http://colorer.sf.net/2003/hrc.dtd">
+<hrc version="take5" xmlns="http://colorer.sf.net/2003/hrc"
+     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+     xsi:schemaLocation="http://colorer.sf.net/2003/hrc http://colorer.sf.net/2003/hrc.xsd">
+<!--
+    Asterisk: extensions.conf (диалплан) и прочие конфиги /etc/asterisk.
+    Строки, которые не похожи на диалплан, отдаются схеме config:config
+    (та, что в config.hrc), так что sip.conf, pjsip.conf и т.п. выглядят как раньше.
+-->
+   <type name="asterisk">
+      <annotation>
+        <documentation>Asterisk dialplan and config files</documentation>
+      </annotation>
+
+      <import type="def"/>
+
+      <!-- парные скобки (как в config.hrc) -->
+      <region name="start" parent="def:PairStart"/>
+      <region name="end" parent="def:PairEnd"/>
+
+      <!-- свои регионы: цвета наследуются от родителя, при желании их можно
+           переназначить в своём .hrd, не трогая эту схему -->
+      <region name="AstContext"   parent="def:Function"/>
+      <region name="AstDirective" parent="def:Directive"/>
+      <region name="AstExten"     parent="def:Insertion"/>
+      <region name="AstPriority"  parent="def:Number"/>
+      <region name="AstLabel"     parent="def:Label"/>
+      <region name="AstApp"       parent="def:KeywordStrong"/>
+      <region name="AstFunc"      parent="def:Keyword"/>
+      <region name="AstVariable"  parent="def:Var"/>
+      <region name="AstExpr"      parent="def:VarStrong"/>
+      <region name="AstOp"        parent="def:Operator"/>
+
+
+      <!-- ===== комментарии: только строчные (точка с запятой до конца строки), многострочных нет; обратный слэш перед точкой с запятой экранирует её ===== -->
+      <scheme name="AstComments">
+         <regexp match="/\\;/" region0="def:StringContent"/>
+         <regexp match="/;.*$/" region0="def:Comment"/>
+      </scheme>
+
+      <!-- ===== подстановки ${...} и $[...] (могут вкладываться) ===== -->
+      <scheme name="AstSubst">
+         <block start="/(\$\{)/" end="/(\})|$/" scheme="AstVarBody" region="AstVariable"
+                region00="def:SymbolStrong" region01="start" region10="def:SymbolStrong" region11="end"/>
+         <block start="/(\$\[)/" end="/(\])|$/" scheme="AstExprBody" region="AstExpr"
+                region00="def:SymbolStrong" region01="start" region10="def:SymbolStrong" region11="end"/>
+      </scheme>
+
+      <!-- внутри ${...}: переменные, функции CALLERID(num), срезы :1:3 -->
+      <scheme name="AstVarBody">
+         <inherit scheme="AstSubst"/>
+         <block start="/(\()/" end="/(\))|$/" scheme="AstVarBody"
+                region00="def:Symbol" region01="start" region10="def:Symbol" region11="end"/>
+         <regexp match="/\b[A-Za-z_]\w*\M\(/" region0="AstFunc"/>
+         <regexp match="/[,:]/" region0="def:Symbol"/>
+      </scheme>
+
+      <!-- внутри $[...]: выражения -->
+      <scheme name="AstExprBody">
+         <inherit scheme="AstSubst"/>
+         <block start="/(&quot;)/" end="/(&quot;)|$/" scheme="AstStrContent" region="def:String"
+                region00="def:StringEdge" region10="def:StringEdge"/>
+         <block start="/(\()/" end="/(\))|$/" scheme="AstExprBody"
+                region00="def:Symbol" region01="start" region10="def:Symbol" region11="end"/>
+         <regexp match="/\b[A-Za-z_]\w*\M\(/" region0="AstFunc"/>
+         <regexp match="/\b\d+(\.\d+)?\b/" region0="def:Number"/>
+         <regexp match="/[=!&lt;&gt;~+\-*\/%|&amp;?:]+/" region0="AstOp"/>
+      </scheme>
+
+      <!-- содержимое строки в двойных кавычках -->
+      <scheme name="AstStrContent">
+         <regexp match="/\\./" region0="def:StringContent"/>
+         <inherit scheme="AstSubst"/>
+      </scheme>
+
+      <!-- аргументы приложения / функции (всё, что внутри скобок) -->
+      <scheme name="AstArgs">
+         <inherit scheme="AstComments"/>
+         <regexp match="/\\./" region0="def:StringContent"/>
+         <inherit scheme="AstSubst"/>
+         <block start="/(&quot;)/" end="/(&quot;)|$/" scheme="AstStrContent" region="def:String"
+                region00="def:StringEdge" region10="def:StringEdge"/>
+         <block start="/(\()/" end="/(\))|$/" scheme="AstArgs"
+                region00="def:Symbol" region01="start" region10="def:Symbol" region11="end"/>
+         <regexp match="/\b[A-Za-z_]\w*\M\(/" region0="AstFunc"/>
+         <regexp match="/\b\d+(\.\d+)?\b/" region0="def:Number"/>
+         <regexp match="/[,|&amp;?:]/" region0="def:Symbol"/>
+      </scheme>
+
+      <!-- хвост строки exten/same после "приоритет," : (аргументы) и комментарий -->
+      <scheme name="AstAppLine">
+         <inherit scheme="AstComments"/>
+         <block start="/(\()/" end="/(\))|$/" scheme="AstArgs"
+                region00="def:Symbol" region01="start" region10="def:Symbol" region11="end"/>
+      </scheme>
+
+      <!-- хвост #include / #exec -->
+      <scheme name="AstDirectiveRest">
+         <inherit scheme="AstComments"/>
+         <inherit scheme="AstSubst"/>
+         <block start="/(&quot;)/" end="/(&quot;)|$/" scheme="AstStrContent" region="def:String"
+                region00="def:StringEdge" region10="def:StringEdge"/>
+         <block start="/(&lt;)/" end="/(&gt;)|$/" scheme="def:empty" region="def:String"/>
+      </scheme>
+
+
+      <!-- ===== основная схема ===== -->
+      <scheme name="asterisk">
+         <inherit scheme="AstComments"/>
+
+         <!-- [context] -->
+         <block start="/^\s*(\[)/" end="/(\])/" scheme="def:empty" region="AstContext"
+                region00="def:SymbolStrong" region10="def:SymbolStrong" region01="start" region11="end"/>
+
+         <!-- #include / #tryinclude / #exec -->
+         <block start="/^\s*(\#(?:include|tryinclude|exec))\b/i" end="/$/" scheme="AstDirectiveRest"
+                region01="AstDirective"/>
+
+         <!-- exten => шаблон,приоритет(метка),Приложение(аргументы)
+              группы: 1 exten, 2 =>, 3 шаблон, 4 приоритет, 5 "(", 6 метка, 7 ")", 8 приложение -->
+         <block start="/^\s*(exten)\s*(=&gt;?)\s*([^,;\s]+)\s*,\s*(\w+)(?:(\()(\w+)(\)))?\s*,\s*([A-Za-z_]\w*)?/i"
+                end="/$/" scheme="AstAppLine"
+                region01="AstDirective" region02="def:Symbol" region03="AstExten" region04="AstPriority"
+                region05="start" region06="AstLabel" region07="end" region08="AstApp"/>
+
+         <!-- same => приоритет(метка),Приложение(аргументы)
+              группы: 1 same, 2 =>, 3 приоритет, 4 "(", 5 метка, 6 ")", 7 приложение -->
+         <block start="/^\s*(same)\s*(=&gt;?)\s*(\w+)(?:(\()(\w+)(\)))?\s*,\s*([A-Za-z_]\w*)?/i"
+                end="/$/" scheme="AstAppLine"
+                region01="AstDirective" region02="def:Symbol" region03="AstPriority"
+                region04="start" region05="AstLabel" region06="end" region07="AstApp"/>
+
+         <!-- include => контекст -->
+         <regexp match="/^\s*(include)\s*(=&gt;?)\s*([^;\s]+)?/i"
+                 region1="AstDirective" region2="def:Symbol" region3="AstContext"/>
+
+         <!-- switch / ignorepat / autohints / catch -->
+         <regexp match="/^\s*(switch|ignorepat|autohints|catch)\s*(=&gt;?)/i"
+                 region1="AstDirective" region2="def:Symbol"/>
+
+         <!-- имя = значение (секции [globals], [general], и обычные ini-параметры) -->
+         <regexp match="/^\s*([A-Za-z_][\w.\-]*)\s*\M=(?:[^&gt;]|$)/" region1="AstVariable"/>
+
+         <!-- всё остальное - как обычный config -->
+         <inherit scheme="config:config"/>
+      </scheme>
+
+   </type>
+</hrc>
+<!--
+This library is free software; you can redistribute it and/or
+modify it under the terms of the GNU Lesser General Public
+License as published by the Free Software Foundation; either
+version 2.1 of the License, or (at your option) any later version.
+-->
