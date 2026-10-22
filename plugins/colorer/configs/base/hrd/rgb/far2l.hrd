@@ -15,6 +15,7 @@
   <assign name="def:NumberFloat" fore="#00E080"/>
   <assign name="def:NumberSuffix" fore="#008000"/>
 
+  <assign name="asterisk:AstStringEdge" fore="#aeff00"/>
   <assign name="def:String" fore="#88ee88"/>
   <assign name="def:StringContent" fore="#999911" style='1'/>
   <assign name="def:StringEdge" fore="#40a000"/>

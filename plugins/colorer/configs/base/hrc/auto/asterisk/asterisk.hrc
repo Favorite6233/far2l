@@ -32,6 +32,7 @@
       <region name="AstVariable"  parent="def:Var"/>
       <region name="AstExpr"      parent="def:VarStrong"/>
       <region name="AstOp"        parent="def:Operator"/>
+      <region name="AstStringEdge" parent="def:StringEdge"/>
 
 
       <!-- ===== комментарии: только строчные (точка с запятой до конца строки), многострочных нет; обратный слэш перед точкой с запятой экранирует её ===== -->
@@ -61,7 +62,7 @@
       <scheme name="AstExprBody">
          <inherit scheme="AstSubst"/>
          <block start="/(&quot;)/" end="/(&quot;)|$/" scheme="AstStrContent" region="def:String"
-                region00="def:StringEdge" region10="def:StringEdge"/>
+                region00="AstStringEdge" region10="AstStringEdge"/>
          <block start="/(\()/" end="/(\))|$/" scheme="AstExprBody"
                 region00="def:Symbol" region01="start" region10="def:Symbol" region11="end"/>
          <regexp match="/\b[A-Za-z_]\w*\M\(/" region0="AstFunc"/>
@@ -81,7 +82,7 @@
          <regexp match="/\\./" region0="def:StringContent"/>
          <inherit scheme="AstSubst"/>
          <block start="/(&quot;)/" end="/(&quot;)|$/" scheme="AstStrContent" region="def:String"
-                region00="def:StringEdge" region10="def:StringEdge"/>
+                region00="AstStringEdge" region10="AstStringEdge"/>
          <block start="/(\()/" end="/(\))|$/" scheme="AstArgs"
                 region00="def:Symbol" region01="start" region10="def:Symbol" region11="end"/>
          <regexp match="/\b[A-Za-z_]\w*\M\(/" region0="AstFunc"/>
@@ -101,7 +102,7 @@
          <inherit scheme="AstComments"/>
          <inherit scheme="AstSubst"/>
          <block start="/(&quot;)/" end="/(&quot;)|$/" scheme="AstStrContent" region="def:String"
-                region00="def:StringEdge" region10="def:StringEdge"/>
+                region00="AstStringEdge" region10="AstStringEdge"/>
          <block start="/(&lt;)/" end="/(&gt;)|$/" scheme="def:empty" region="def:String"/>
       </scheme>
 

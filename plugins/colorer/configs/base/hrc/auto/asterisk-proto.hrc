@@ -4,13 +4,22 @@
 <hrc version="take5" xmlns="http://colorer.sf.net/2003/hrc"
      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
      xsi:schemaLocation="http://colorer.sf.net/2003/hrc http://colorer.sf.net/2003/hrc.xsd">
-
+<!--
+    ВАЖНО: far2l передаёт в Colorer только ИМЯ файла (без пути), поэтому выбирать схему
+    "по папке" нельзя. Остаются имя файла и первые строки содержимого.
+-->
    <prototype name="asterisk" group="scripts" description="Asterisk config / dialplan">
       <location link="asterisk/asterisk.hrc"/>
-      <!-- любой *.conf прямо в папке .../asterisk/ -->
-      <filename weight="10">/[\/\\]asterisk[\/\\][^\/\\]+\.conf$/i</filename>
-      <!-- и extensions*.conf где бы он ни лежал (копия в домашней папке и т.п.) -->
-      <filename weight="10">/(^|[\/\\])extensions[^\/\\]*\.conf$/i</filename>
+
+      <!-- диалплан: extensions.conf, extensions_custom.conf, extensions-xxx.conf -->
+      <filename weight="10">/^extensions[^\/]*\.conf$/i</filename>
+
+      <!-- стандартные конфиги Asterisk (дополни список своими именами через |) -->
+      <filename weight="10">/^(sip|sip_[\w\-]+|pjsip|pjsip_[\w\-]+|iax|iax2|users|voicemail|queues|musiconhold|features|agents|rtp|modules|manager|http|cdr|logger|asterisk|confbridge|dundi|indications|meetme|res_[\w\-]+|chan_[\w\-]+)\.conf$/i</filename>
+
+      <!-- любой файл (с любым именем и в любой папке), у которого первая строка
+           начинается с комментария со словом asterisk, например:   ; asterisk   -->
+      <firstline weight="10">/^\s*;.*\basterisk\b/i</firstline>
    </prototype>
 
 </hrc>
