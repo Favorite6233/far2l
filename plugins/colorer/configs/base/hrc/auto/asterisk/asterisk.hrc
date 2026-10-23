@@ -34,6 +34,14 @@
       <region name="AstOp"        parent="def:Operator"/>
       <region name="AstStringEdge" parent="def:StringEdge"/>
 
+      <!-- цвета скобок по глубине вложенности (1 - внешний уровень); после последнего цвета идёт по кругу -->
+      <region name="AstBr1"        parent="def:SymbolStrong"/>
+      <region name="AstBr2"        parent="def:SymbolStrong"/>
+      <region name="AstBr3"        parent="def:SymbolStrong"/>
+      <region name="AstBr4"        parent="def:SymbolStrong"/>
+      <region name="AstBr5"        parent="def:SymbolStrong"/>
+      <region name="AstBr6"        parent="def:SymbolStrong"/>
+
 
       <!-- ===== комментарии: только строчные (точка с запятой до конца строки), многострочных нет; обратный слэш перед точкой с запятой экранирует её ===== -->
       <scheme name="AstComments">
@@ -41,67 +49,489 @@
          <regexp match="/;.*$/" region0="def:Comment"/>
       </scheme>
 
-      <!-- ===== подстановки ${...} и $[...] (могут вкладываться) ===== -->
-      <scheme name="AstSubst">
-         <block start="/(\$\{)/" end="/(\})|$/" scheme="AstVarBody" region="AstVariable"
-                region00="def:SymbolStrong" region01="start" region10="def:SymbolStrong" region11="end"/>
-         <block start="/(\$\[)/" end="/(\])|$/" scheme="AstExprBody" region="AstExpr"
-                region00="def:SymbolStrong" region01="start" region10="def:SymbolStrong" region11="end"/>
+      <!-- ===== схемы по уровням вложенности (сгенерированы): AstOpenN - открывающие скобки уровня N,
+                 Ast*BodyN - содержимое скобки уровня N. Лишняя или не та закрывающая скобка внутри - def:Error ===== -->
+      <scheme name="AstOpenSubst1">
+         <block start="/(\$\{)/" end="/(\})|$/" scheme="AstVarBody1" region="AstVariable"
+                region00="AstBr1" region01="start" region10="AstBr1" region11="end"/>
+         <block start="/(\$\[)/" end="/(\])|$/" scheme="AstExprBody1" region="AstExpr"
+                region00="AstBr1" region01="start" region10="AstBr1" region11="end"/>
       </scheme>
 
-      <!-- внутри ${...}: переменные, функции CALLERID(num), срезы :1:3 -->
-      <scheme name="AstVarBody">
-         <inherit scheme="AstSubst"/>
-         <block start="/(\()/" end="/(\))|$/" scheme="AstVarBody"
-                region00="def:Symbol" region01="start" region10="def:Symbol" region11="end"/>
-         <regexp match="/\b[A-Za-z_]\w*\M\(/" region0="AstFunc"/>
-         <regexp match="/[,:]/" region0="def:Symbol"/>
+      <scheme name="AstOpen1">
+         <block start="/(\$\{)/" end="/(\})|$/" scheme="AstVarBody1" region="AstVariable"
+                region00="AstBr1" region01="start" region10="AstBr1" region11="end"/>
+         <block start="/(\$\[)/" end="/(\])|$/" scheme="AstExprBody1" region="AstExpr"
+                region00="AstBr1" region01="start" region10="AstBr1" region11="end"/>
+         <block start="/(\()/" end="/(\))|$/" scheme="AstParenBody1"
+                region00="AstBr1" region01="start" region10="AstBr1" region11="end"/>
+         <block start="/(\{)/" end="/(\})|$/" scheme="AstBraceBody1"
+                region00="AstBr1" region01="start" region10="AstBr1" region11="end"/>
+         <block start="/(\[)/" end="/(\])|$/" scheme="AstBracketBody1"
+                region00="AstBr1" region01="start" region10="AstBr1" region11="end"/>
       </scheme>
 
-      <!-- внутри $[...]: выражения -->
-      <scheme name="AstExprBody">
-         <inherit scheme="AstSubst"/>
-         <block start="/(&quot;)/" end="/(&quot;)|$/" scheme="AstStrContent" region="def:String"
-                region00="AstStringEdge" region10="AstStringEdge"/>
-         <block start="/(\()/" end="/(\))|$/" scheme="AstExprBody"
-                region00="def:Symbol" region01="start" region10="def:Symbol" region11="end"/>
-         <regexp match="/\b[A-Za-z_]\w*\M\(/" region0="AstFunc"/>
-         <regexp match="/\b\d+(\.\d+)?\b/" region0="def:Number"/>
-         <regexp match="/[=!&lt;&gt;~+\-*\/%|&amp;?:]+/" region0="AstOp"/>
-      </scheme>
-
-      <!-- содержимое строки в двойных кавычках -->
-      <scheme name="AstStrContent">
+      <scheme name="AstStr1">
          <regexp match="/\\./" region0="def:StringContent"/>
-         <inherit scheme="AstSubst"/>
+         <inherit scheme="AstOpenSubst1"/>
       </scheme>
 
-      <!-- аргументы приложения / функции (всё, что внутри скобок) -->
-      <scheme name="AstArgs">
+      <scheme name="AstOpenSubst2">
+         <block start="/(\$\{)/" end="/(\})|$/" scheme="AstVarBody2" region="AstVariable"
+                region00="AstBr2" region01="start" region10="AstBr2" region11="end"/>
+         <block start="/(\$\[)/" end="/(\])|$/" scheme="AstExprBody2" region="AstExpr"
+                region00="AstBr2" region01="start" region10="AstBr2" region11="end"/>
+      </scheme>
+
+      <scheme name="AstOpen2">
+         <block start="/(\$\{)/" end="/(\})|$/" scheme="AstVarBody2" region="AstVariable"
+                region00="AstBr2" region01="start" region10="AstBr2" region11="end"/>
+         <block start="/(\$\[)/" end="/(\])|$/" scheme="AstExprBody2" region="AstExpr"
+                region00="AstBr2" region01="start" region10="AstBr2" region11="end"/>
+         <block start="/(\()/" end="/(\))|$/" scheme="AstParenBody2"
+                region00="AstBr2" region01="start" region10="AstBr2" region11="end"/>
+         <block start="/(\{)/" end="/(\})|$/" scheme="AstBraceBody2"
+                region00="AstBr2" region01="start" region10="AstBr2" region11="end"/>
+         <block start="/(\[)/" end="/(\])|$/" scheme="AstBracketBody2"
+                region00="AstBr2" region01="start" region10="AstBr2" region11="end"/>
+      </scheme>
+
+      <scheme name="AstStr2">
+         <regexp match="/\\./" region0="def:StringContent"/>
+         <inherit scheme="AstOpenSubst2"/>
+      </scheme>
+
+      <scheme name="AstOpenSubst3">
+         <block start="/(\$\{)/" end="/(\})|$/" scheme="AstVarBody3" region="AstVariable"
+                region00="AstBr3" region01="start" region10="AstBr3" region11="end"/>
+         <block start="/(\$\[)/" end="/(\])|$/" scheme="AstExprBody3" region="AstExpr"
+                region00="AstBr3" region01="start" region10="AstBr3" region11="end"/>
+      </scheme>
+
+      <scheme name="AstOpen3">
+         <block start="/(\$\{)/" end="/(\})|$/" scheme="AstVarBody3" region="AstVariable"
+                region00="AstBr3" region01="start" region10="AstBr3" region11="end"/>
+         <block start="/(\$\[)/" end="/(\])|$/" scheme="AstExprBody3" region="AstExpr"
+                region00="AstBr3" region01="start" region10="AstBr3" region11="end"/>
+         <block start="/(\()/" end="/(\))|$/" scheme="AstParenBody3"
+                region00="AstBr3" region01="start" region10="AstBr3" region11="end"/>
+         <block start="/(\{)/" end="/(\})|$/" scheme="AstBraceBody3"
+                region00="AstBr3" region01="start" region10="AstBr3" region11="end"/>
+         <block start="/(\[)/" end="/(\])|$/" scheme="AstBracketBody3"
+                region00="AstBr3" region01="start" region10="AstBr3" region11="end"/>
+      </scheme>
+
+      <scheme name="AstStr3">
+         <regexp match="/\\./" region0="def:StringContent"/>
+         <inherit scheme="AstOpenSubst3"/>
+      </scheme>
+
+      <scheme name="AstOpenSubst4">
+         <block start="/(\$\{)/" end="/(\})|$/" scheme="AstVarBody4" region="AstVariable"
+                region00="AstBr4" region01="start" region10="AstBr4" region11="end"/>
+         <block start="/(\$\[)/" end="/(\])|$/" scheme="AstExprBody4" region="AstExpr"
+                region00="AstBr4" region01="start" region10="AstBr4" region11="end"/>
+      </scheme>
+
+      <scheme name="AstOpen4">
+         <block start="/(\$\{)/" end="/(\})|$/" scheme="AstVarBody4" region="AstVariable"
+                region00="AstBr4" region01="start" region10="AstBr4" region11="end"/>
+         <block start="/(\$\[)/" end="/(\])|$/" scheme="AstExprBody4" region="AstExpr"
+                region00="AstBr4" region01="start" region10="AstBr4" region11="end"/>
+         <block start="/(\()/" end="/(\))|$/" scheme="AstParenBody4"
+                region00="AstBr4" region01="start" region10="AstBr4" region11="end"/>
+         <block start="/(\{)/" end="/(\})|$/" scheme="AstBraceBody4"
+                region00="AstBr4" region01="start" region10="AstBr4" region11="end"/>
+         <block start="/(\[)/" end="/(\])|$/" scheme="AstBracketBody4"
+                region00="AstBr4" region01="start" region10="AstBr4" region11="end"/>
+      </scheme>
+
+      <scheme name="AstStr4">
+         <regexp match="/\\./" region0="def:StringContent"/>
+         <inherit scheme="AstOpenSubst4"/>
+      </scheme>
+
+      <scheme name="AstOpenSubst5">
+         <block start="/(\$\{)/" end="/(\})|$/" scheme="AstVarBody5" region="AstVariable"
+                region00="AstBr5" region01="start" region10="AstBr5" region11="end"/>
+         <block start="/(\$\[)/" end="/(\])|$/" scheme="AstExprBody5" region="AstExpr"
+                region00="AstBr5" region01="start" region10="AstBr5" region11="end"/>
+      </scheme>
+
+      <scheme name="AstOpen5">
+         <block start="/(\$\{)/" end="/(\})|$/" scheme="AstVarBody5" region="AstVariable"
+                region00="AstBr5" region01="start" region10="AstBr5" region11="end"/>
+         <block start="/(\$\[)/" end="/(\])|$/" scheme="AstExprBody5" region="AstExpr"
+                region00="AstBr5" region01="start" region10="AstBr5" region11="end"/>
+         <block start="/(\()/" end="/(\))|$/" scheme="AstParenBody5"
+                region00="AstBr5" region01="start" region10="AstBr5" region11="end"/>
+         <block start="/(\{)/" end="/(\})|$/" scheme="AstBraceBody5"
+                region00="AstBr5" region01="start" region10="AstBr5" region11="end"/>
+         <block start="/(\[)/" end="/(\])|$/" scheme="AstBracketBody5"
+                region00="AstBr5" region01="start" region10="AstBr5" region11="end"/>
+      </scheme>
+
+      <scheme name="AstStr5">
+         <regexp match="/\\./" region0="def:StringContent"/>
+         <inherit scheme="AstOpenSubst5"/>
+      </scheme>
+
+      <scheme name="AstOpenSubst6">
+         <block start="/(\$\{)/" end="/(\})|$/" scheme="AstVarBody6" region="AstVariable"
+                region00="AstBr6" region01="start" region10="AstBr6" region11="end"/>
+         <block start="/(\$\[)/" end="/(\])|$/" scheme="AstExprBody6" region="AstExpr"
+                region00="AstBr6" region01="start" region10="AstBr6" region11="end"/>
+      </scheme>
+
+      <scheme name="AstOpen6">
+         <block start="/(\$\{)/" end="/(\})|$/" scheme="AstVarBody6" region="AstVariable"
+                region00="AstBr6" region01="start" region10="AstBr6" region11="end"/>
+         <block start="/(\$\[)/" end="/(\])|$/" scheme="AstExprBody6" region="AstExpr"
+                region00="AstBr6" region01="start" region10="AstBr6" region11="end"/>
+         <block start="/(\()/" end="/(\))|$/" scheme="AstParenBody6"
+                region00="AstBr6" region01="start" region10="AstBr6" region11="end"/>
+         <block start="/(\{)/" end="/(\})|$/" scheme="AstBraceBody6"
+                region00="AstBr6" region01="start" region10="AstBr6" region11="end"/>
+         <block start="/(\[)/" end="/(\])|$/" scheme="AstBracketBody6"
+                region00="AstBr6" region01="start" region10="AstBr6" region11="end"/>
+      </scheme>
+
+      <scheme name="AstStr6">
+         <regexp match="/\\./" region0="def:StringContent"/>
+         <inherit scheme="AstOpenSubst6"/>
+      </scheme>
+
+      <scheme name="AstParenBody1">
          <inherit scheme="AstComments"/>
+         <regexp match="/[\}\]]/" region0="def:Error"/>
          <regexp match="/\\./" region0="def:StringContent"/>
-         <inherit scheme="AstSubst"/>
-         <block start="/(&quot;)/" end="/(&quot;)|$/" scheme="AstStrContent" region="def:String"
+         <inherit scheme="AstOpen2"/>
+         <block start="/(&quot;)/" end="/(&quot;)|$/" scheme="AstStr2" region="def:String"
                 region00="AstStringEdge" region10="AstStringEdge"/>
-         <block start="/(\()/" end="/(\))|$/" scheme="AstArgs"
-                region00="def:Symbol" region01="start" region10="def:Symbol" region11="end"/>
          <regexp match="/\b[A-Za-z_]\w*\M\(/" region0="AstFunc"/>
          <regexp match="/\b\d+(\.\d+)?\b/" region0="def:Number"/>
          <regexp match="/[,|&amp;?:]/" region0="def:Symbol"/>
       </scheme>
 
+      <scheme name="AstBraceBody1">
+         <inherit scheme="AstComments"/>
+         <regexp match="/[\)\]]/" region0="def:Error"/>
+         <regexp match="/\\./" region0="def:StringContent"/>
+         <inherit scheme="AstOpen2"/>
+         <block start="/(&quot;)/" end="/(&quot;)|$/" scheme="AstStr2" region="def:String"
+                region00="AstStringEdge" region10="AstStringEdge"/>
+         <regexp match="/\b[A-Za-z_]\w*\M\(/" region0="AstFunc"/>
+         <regexp match="/\b\d+(\.\d+)?\b/" region0="def:Number"/>
+         <regexp match="/[,|&amp;?:]/" region0="def:Symbol"/>
+      </scheme>
+
+      <scheme name="AstBracketBody1">
+         <inherit scheme="AstComments"/>
+         <regexp match="/[\)\}]/" region0="def:Error"/>
+         <regexp match="/\\./" region0="def:StringContent"/>
+         <inherit scheme="AstOpen2"/>
+         <block start="/(&quot;)/" end="/(&quot;)|$/" scheme="AstStr2" region="def:String"
+                region00="AstStringEdge" region10="AstStringEdge"/>
+         <regexp match="/\b[A-Za-z_]\w*\M\(/" region0="AstFunc"/>
+         <regexp match="/\b\d+(\.\d+)?\b/" region0="def:Number"/>
+         <regexp match="/[,|&amp;?:]/" region0="def:Symbol"/>
+      </scheme>
+
+      <scheme name="AstVarBody1">
+         <regexp match="/[\)\]]/" region0="def:Error"/>
+         <inherit scheme="AstOpen2"/>
+         <regexp match="/\b[A-Za-z_]\w*\M\(/" region0="AstFunc"/>
+         <regexp match="/[,:]/" region0="def:Symbol"/>
+      </scheme>
+
+      <scheme name="AstExprBody1">
+         <regexp match="/[\)\}]/" region0="def:Error"/>
+         <inherit scheme="AstOpen2"/>
+         <block start="/(&quot;)/" end="/(&quot;)|$/" scheme="AstStr2" region="def:String"
+                region00="AstStringEdge" region10="AstStringEdge"/>
+         <regexp match="/\b[A-Za-z_]\w*\M\(/" region0="AstFunc"/>
+         <regexp match="/\b\d+(\.\d+)?\b/" region0="def:Number"/>
+         <regexp match="/[=!&lt;&gt;~+\-*\/%|&amp;?:]+/" region0="AstOp"/>
+      </scheme>
+
+      <scheme name="AstParenBody2">
+         <inherit scheme="AstComments"/>
+         <regexp match="/[\}\]]/" region0="def:Error"/>
+         <regexp match="/\\./" region0="def:StringContent"/>
+         <inherit scheme="AstOpen3"/>
+         <block start="/(&quot;)/" end="/(&quot;)|$/" scheme="AstStr3" region="def:String"
+                region00="AstStringEdge" region10="AstStringEdge"/>
+         <regexp match="/\b[A-Za-z_]\w*\M\(/" region0="AstFunc"/>
+         <regexp match="/\b\d+(\.\d+)?\b/" region0="def:Number"/>
+         <regexp match="/[,|&amp;?:]/" region0="def:Symbol"/>
+      </scheme>
+
+      <scheme name="AstBraceBody2">
+         <inherit scheme="AstComments"/>
+         <regexp match="/[\)\]]/" region0="def:Error"/>
+         <regexp match="/\\./" region0="def:StringContent"/>
+         <inherit scheme="AstOpen3"/>
+         <block start="/(&quot;)/" end="/(&quot;)|$/" scheme="AstStr3" region="def:String"
+                region00="AstStringEdge" region10="AstStringEdge"/>
+         <regexp match="/\b[A-Za-z_]\w*\M\(/" region0="AstFunc"/>
+         <regexp match="/\b\d+(\.\d+)?\b/" region0="def:Number"/>
+         <regexp match="/[,|&amp;?:]/" region0="def:Symbol"/>
+      </scheme>
+
+      <scheme name="AstBracketBody2">
+         <inherit scheme="AstComments"/>
+         <regexp match="/[\)\}]/" region0="def:Error"/>
+         <regexp match="/\\./" region0="def:StringContent"/>
+         <inherit scheme="AstOpen3"/>
+         <block start="/(&quot;)/" end="/(&quot;)|$/" scheme="AstStr3" region="def:String"
+                region00="AstStringEdge" region10="AstStringEdge"/>
+         <regexp match="/\b[A-Za-z_]\w*\M\(/" region0="AstFunc"/>
+         <regexp match="/\b\d+(\.\d+)?\b/" region0="def:Number"/>
+         <regexp match="/[,|&amp;?:]/" region0="def:Symbol"/>
+      </scheme>
+
+      <scheme name="AstVarBody2">
+         <regexp match="/[\)\]]/" region0="def:Error"/>
+         <inherit scheme="AstOpen3"/>
+         <regexp match="/\b[A-Za-z_]\w*\M\(/" region0="AstFunc"/>
+         <regexp match="/[,:]/" region0="def:Symbol"/>
+      </scheme>
+
+      <scheme name="AstExprBody2">
+         <regexp match="/[\)\}]/" region0="def:Error"/>
+         <inherit scheme="AstOpen3"/>
+         <block start="/(&quot;)/" end="/(&quot;)|$/" scheme="AstStr3" region="def:String"
+                region00="AstStringEdge" region10="AstStringEdge"/>
+         <regexp match="/\b[A-Za-z_]\w*\M\(/" region0="AstFunc"/>
+         <regexp match="/\b\d+(\.\d+)?\b/" region0="def:Number"/>
+         <regexp match="/[=!&lt;&gt;~+\-*\/%|&amp;?:]+/" region0="AstOp"/>
+      </scheme>
+
+      <scheme name="AstParenBody3">
+         <inherit scheme="AstComments"/>
+         <regexp match="/[\}\]]/" region0="def:Error"/>
+         <regexp match="/\\./" region0="def:StringContent"/>
+         <inherit scheme="AstOpen4"/>
+         <block start="/(&quot;)/" end="/(&quot;)|$/" scheme="AstStr4" region="def:String"
+                region00="AstStringEdge" region10="AstStringEdge"/>
+         <regexp match="/\b[A-Za-z_]\w*\M\(/" region0="AstFunc"/>
+         <regexp match="/\b\d+(\.\d+)?\b/" region0="def:Number"/>
+         <regexp match="/[,|&amp;?:]/" region0="def:Symbol"/>
+      </scheme>
+
+      <scheme name="AstBraceBody3">
+         <inherit scheme="AstComments"/>
+         <regexp match="/[\)\]]/" region0="def:Error"/>
+         <regexp match="/\\./" region0="def:StringContent"/>
+         <inherit scheme="AstOpen4"/>
+         <block start="/(&quot;)/" end="/(&quot;)|$/" scheme="AstStr4" region="def:String"
+                region00="AstStringEdge" region10="AstStringEdge"/>
+         <regexp match="/\b[A-Za-z_]\w*\M\(/" region0="AstFunc"/>
+         <regexp match="/\b\d+(\.\d+)?\b/" region0="def:Number"/>
+         <regexp match="/[,|&amp;?:]/" region0="def:Symbol"/>
+      </scheme>
+
+      <scheme name="AstBracketBody3">
+         <inherit scheme="AstComments"/>
+         <regexp match="/[\)\}]/" region0="def:Error"/>
+         <regexp match="/\\./" region0="def:StringContent"/>
+         <inherit scheme="AstOpen4"/>
+         <block start="/(&quot;)/" end="/(&quot;)|$/" scheme="AstStr4" region="def:String"
+                region00="AstStringEdge" region10="AstStringEdge"/>
+         <regexp match="/\b[A-Za-z_]\w*\M\(/" region0="AstFunc"/>
+         <regexp match="/\b\d+(\.\d+)?\b/" region0="def:Number"/>
+         <regexp match="/[,|&amp;?:]/" region0="def:Symbol"/>
+      </scheme>
+
+      <scheme name="AstVarBody3">
+         <regexp match="/[\)\]]/" region0="def:Error"/>
+         <inherit scheme="AstOpen4"/>
+         <regexp match="/\b[A-Za-z_]\w*\M\(/" region0="AstFunc"/>
+         <regexp match="/[,:]/" region0="def:Symbol"/>
+      </scheme>
+
+      <scheme name="AstExprBody3">
+         <regexp match="/[\)\}]/" region0="def:Error"/>
+         <inherit scheme="AstOpen4"/>
+         <block start="/(&quot;)/" end="/(&quot;)|$/" scheme="AstStr4" region="def:String"
+                region00="AstStringEdge" region10="AstStringEdge"/>
+         <regexp match="/\b[A-Za-z_]\w*\M\(/" region0="AstFunc"/>
+         <regexp match="/\b\d+(\.\d+)?\b/" region0="def:Number"/>
+         <regexp match="/[=!&lt;&gt;~+\-*\/%|&amp;?:]+/" region0="AstOp"/>
+      </scheme>
+
+      <scheme name="AstParenBody4">
+         <inherit scheme="AstComments"/>
+         <regexp match="/[\}\]]/" region0="def:Error"/>
+         <regexp match="/\\./" region0="def:StringContent"/>
+         <inherit scheme="AstOpen5"/>
+         <block start="/(&quot;)/" end="/(&quot;)|$/" scheme="AstStr5" region="def:String"
+                region00="AstStringEdge" region10="AstStringEdge"/>
+         <regexp match="/\b[A-Za-z_]\w*\M\(/" region0="AstFunc"/>
+         <regexp match="/\b\d+(\.\d+)?\b/" region0="def:Number"/>
+         <regexp match="/[,|&amp;?:]/" region0="def:Symbol"/>
+      </scheme>
+
+      <scheme name="AstBraceBody4">
+         <inherit scheme="AstComments"/>
+         <regexp match="/[\)\]]/" region0="def:Error"/>
+         <regexp match="/\\./" region0="def:StringContent"/>
+         <inherit scheme="AstOpen5"/>
+         <block start="/(&quot;)/" end="/(&quot;)|$/" scheme="AstStr5" region="def:String"
+                region00="AstStringEdge" region10="AstStringEdge"/>
+         <regexp match="/\b[A-Za-z_]\w*\M\(/" region0="AstFunc"/>
+         <regexp match="/\b\d+(\.\d+)?\b/" region0="def:Number"/>
+         <regexp match="/[,|&amp;?:]/" region0="def:Symbol"/>
+      </scheme>
+
+      <scheme name="AstBracketBody4">
+         <inherit scheme="AstComments"/>
+         <regexp match="/[\)\}]/" region0="def:Error"/>
+         <regexp match="/\\./" region0="def:StringContent"/>
+         <inherit scheme="AstOpen5"/>
+         <block start="/(&quot;)/" end="/(&quot;)|$/" scheme="AstStr5" region="def:String"
+                region00="AstStringEdge" region10="AstStringEdge"/>
+         <regexp match="/\b[A-Za-z_]\w*\M\(/" region0="AstFunc"/>
+         <regexp match="/\b\d+(\.\d+)?\b/" region0="def:Number"/>
+         <regexp match="/[,|&amp;?:]/" region0="def:Symbol"/>
+      </scheme>
+
+      <scheme name="AstVarBody4">
+         <regexp match="/[\)\]]/" region0="def:Error"/>
+         <inherit scheme="AstOpen5"/>
+         <regexp match="/\b[A-Za-z_]\w*\M\(/" region0="AstFunc"/>
+         <regexp match="/[,:]/" region0="def:Symbol"/>
+      </scheme>
+
+      <scheme name="AstExprBody4">
+         <regexp match="/[\)\}]/" region0="def:Error"/>
+         <inherit scheme="AstOpen5"/>
+         <block start="/(&quot;)/" end="/(&quot;)|$/" scheme="AstStr5" region="def:String"
+                region00="AstStringEdge" region10="AstStringEdge"/>
+         <regexp match="/\b[A-Za-z_]\w*\M\(/" region0="AstFunc"/>
+         <regexp match="/\b\d+(\.\d+)?\b/" region0="def:Number"/>
+         <regexp match="/[=!&lt;&gt;~+\-*\/%|&amp;?:]+/" region0="AstOp"/>
+      </scheme>
+
+      <scheme name="AstParenBody5">
+         <inherit scheme="AstComments"/>
+         <regexp match="/[\}\]]/" region0="def:Error"/>
+         <regexp match="/\\./" region0="def:StringContent"/>
+         <inherit scheme="AstOpen6"/>
+         <block start="/(&quot;)/" end="/(&quot;)|$/" scheme="AstStr6" region="def:String"
+                region00="AstStringEdge" region10="AstStringEdge"/>
+         <regexp match="/\b[A-Za-z_]\w*\M\(/" region0="AstFunc"/>
+         <regexp match="/\b\d+(\.\d+)?\b/" region0="def:Number"/>
+         <regexp match="/[,|&amp;?:]/" region0="def:Symbol"/>
+      </scheme>
+
+      <scheme name="AstBraceBody5">
+         <inherit scheme="AstComments"/>
+         <regexp match="/[\)\]]/" region0="def:Error"/>
+         <regexp match="/\\./" region0="def:StringContent"/>
+         <inherit scheme="AstOpen6"/>
+         <block start="/(&quot;)/" end="/(&quot;)|$/" scheme="AstStr6" region="def:String"
+                region00="AstStringEdge" region10="AstStringEdge"/>
+         <regexp match="/\b[A-Za-z_]\w*\M\(/" region0="AstFunc"/>
+         <regexp match="/\b\d+(\.\d+)?\b/" region0="def:Number"/>
+         <regexp match="/[,|&amp;?:]/" region0="def:Symbol"/>
+      </scheme>
+
+      <scheme name="AstBracketBody5">
+         <inherit scheme="AstComments"/>
+         <regexp match="/[\)\}]/" region0="def:Error"/>
+         <regexp match="/\\./" region0="def:StringContent"/>
+         <inherit scheme="AstOpen6"/>
+         <block start="/(&quot;)/" end="/(&quot;)|$/" scheme="AstStr6" region="def:String"
+                region00="AstStringEdge" region10="AstStringEdge"/>
+         <regexp match="/\b[A-Za-z_]\w*\M\(/" region0="AstFunc"/>
+         <regexp match="/\b\d+(\.\d+)?\b/" region0="def:Number"/>
+         <regexp match="/[,|&amp;?:]/" region0="def:Symbol"/>
+      </scheme>
+
+      <scheme name="AstVarBody5">
+         <regexp match="/[\)\]]/" region0="def:Error"/>
+         <inherit scheme="AstOpen6"/>
+         <regexp match="/\b[A-Za-z_]\w*\M\(/" region0="AstFunc"/>
+         <regexp match="/[,:]/" region0="def:Symbol"/>
+      </scheme>
+
+      <scheme name="AstExprBody5">
+         <regexp match="/[\)\}]/" region0="def:Error"/>
+         <inherit scheme="AstOpen6"/>
+         <block start="/(&quot;)/" end="/(&quot;)|$/" scheme="AstStr6" region="def:String"
+                region00="AstStringEdge" region10="AstStringEdge"/>
+         <regexp match="/\b[A-Za-z_]\w*\M\(/" region0="AstFunc"/>
+         <regexp match="/\b\d+(\.\d+)?\b/" region0="def:Number"/>
+         <regexp match="/[=!&lt;&gt;~+\-*\/%|&amp;?:]+/" region0="AstOp"/>
+      </scheme>
+
+      <scheme name="AstParenBody6">
+         <inherit scheme="AstComments"/>
+         <regexp match="/[\}\]]/" region0="def:Error"/>
+         <regexp match="/\\./" region0="def:StringContent"/>
+         <inherit scheme="AstOpen1"/>
+         <block start="/(&quot;)/" end="/(&quot;)|$/" scheme="AstStr1" region="def:String"
+                region00="AstStringEdge" region10="AstStringEdge"/>
+         <regexp match="/\b[A-Za-z_]\w*\M\(/" region0="AstFunc"/>
+         <regexp match="/\b\d+(\.\d+)?\b/" region0="def:Number"/>
+         <regexp match="/[,|&amp;?:]/" region0="def:Symbol"/>
+      </scheme>
+
+      <scheme name="AstBraceBody6">
+         <inherit scheme="AstComments"/>
+         <regexp match="/[\)\]]/" region0="def:Error"/>
+         <regexp match="/\\./" region0="def:StringContent"/>
+         <inherit scheme="AstOpen1"/>
+         <block start="/(&quot;)/" end="/(&quot;)|$/" scheme="AstStr1" region="def:String"
+                region00="AstStringEdge" region10="AstStringEdge"/>
+         <regexp match="/\b[A-Za-z_]\w*\M\(/" region0="AstFunc"/>
+         <regexp match="/\b\d+(\.\d+)?\b/" region0="def:Number"/>
+         <regexp match="/[,|&amp;?:]/" region0="def:Symbol"/>
+      </scheme>
+
+      <scheme name="AstBracketBody6">
+         <inherit scheme="AstComments"/>
+         <regexp match="/[\)\}]/" region0="def:Error"/>
+         <regexp match="/\\./" region0="def:StringContent"/>
+         <inherit scheme="AstOpen1"/>
+         <block start="/(&quot;)/" end="/(&quot;)|$/" scheme="AstStr1" region="def:String"
+                region00="AstStringEdge" region10="AstStringEdge"/>
+         <regexp match="/\b[A-Za-z_]\w*\M\(/" region0="AstFunc"/>
+         <regexp match="/\b\d+(\.\d+)?\b/" region0="def:Number"/>
+         <regexp match="/[,|&amp;?:]/" region0="def:Symbol"/>
+      </scheme>
+
+      <scheme name="AstVarBody6">
+         <regexp match="/[\)\]]/" region0="def:Error"/>
+         <inherit scheme="AstOpen1"/>
+         <regexp match="/\b[A-Za-z_]\w*\M\(/" region0="AstFunc"/>
+         <regexp match="/[,:]/" region0="def:Symbol"/>
+      </scheme>
+
+      <scheme name="AstExprBody6">
+         <regexp match="/[\)\}]/" region0="def:Error"/>
+         <inherit scheme="AstOpen1"/>
+         <block start="/(&quot;)/" end="/(&quot;)|$/" scheme="AstStr1" region="def:String"
+                region00="AstStringEdge" region10="AstStringEdge"/>
+         <regexp match="/\b[A-Za-z_]\w*\M\(/" region0="AstFunc"/>
+         <regexp match="/\b\d+(\.\d+)?\b/" region0="def:Number"/>
+         <regexp match="/[=!&lt;&gt;~+\-*\/%|&amp;?:]+/" region0="AstOp"/>
+      </scheme>
+
+
       <!-- хвост строки exten/same после "приоритет," : (аргументы) и комментарий -->
       <scheme name="AstAppLine">
          <inherit scheme="AstComments"/>
-         <block start="/(\()/" end="/(\))|$/" scheme="AstArgs"
-                region00="def:Symbol" region01="start" region10="def:Symbol" region11="end"/>
+         <regexp match="/[\)\}\]]/" region0="def:Error"/>
+         <inherit scheme="AstOpen1"/>
       </scheme>
 
       <!-- хвост #include / #exec -->
       <scheme name="AstDirectiveRest">
          <inherit scheme="AstComments"/>
-         <inherit scheme="AstSubst"/>
-         <block start="/(&quot;)/" end="/(&quot;)|$/" scheme="AstStrContent" region="def:String"
+         <inherit scheme="AstOpenSubst1"/>
+         <block start="/(&quot;)/" end="/(&quot;)|$/" scheme="AstStr1" region="def:String"
                 region00="AstStringEdge" region10="AstStringEdge"/>
          <block start="/(&lt;)/" end="/(&gt;)|$/" scheme="def:empty" region="def:String"/>
       </scheme>
@@ -120,17 +550,27 @@
                 region01="AstDirective"/>
 
          <!-- exten => шаблон,приоритет(метка),Приложение(аргументы)
-              группы: 1 exten, 2 =>, 3 шаблон, 4 приоритет, 5 "(", 6 метка, 7 ")", 8 приложение -->
-         <block start="/^\s*(exten)\s*(=&gt;?)\s*([^,;\s]+)\s*,\s*(\w+)(?:(\()(\w+)(\)))?\s*,\s*([A-Za-z_]\w*)?/i"
+              группы: 1 exten, 2 =>, 3 шаблон, 4 приоритет, 5 "(", 6 метка, 7 ")", 8 приложение.
+              Первый вариант - строка со сбалансированными скобками (проверка (?=...) по всей строке),
+              второй - то же самое, но слово exten красится как ошибка. -->
+         <block start="/^(?:(?:(?:[^\(\)\{\}\[\];\\]|\\.)|[\(\{\[](?:(?:[^\(\)\{\}\[\];\\]|\\.)|[\(\{\[](?:(?:[^\(\)\{\}\[\];\\]|\\.)|[\(\{\[](?:(?:[^\(\)\{\}\[\];\\]|\\.)|[\(\{\[](?:(?:[^\(\)\{\}\[\];\\]|\\.)|[\(\{\[](?:(?:[^\(\)\{\}\[\];\\]|\\.)|[\(\{\[](?:(?:[^\(\)\{\}\[\];\\]|\\.)|[\(\{\[](?:(?:[^\(\)\{\}\[\];\\]|\\.)|[\(\{\[](?:(?:[^\(\)\{\}\[\];\\]|\\.)|[\(\{\[](?:(?:[^\(\)\{\}\[\];\\]|\\.))*[\)\}\]])*[\)\}\]])*[\)\}\]])*[\)\}\]])*[\)\}\]])*[\)\}\]])*[\)\}\]])*[\)\}\]])*[\)\}\]])*(?:;.*)?$)?=\s*(exten)\s*(=&gt;?)\s*([^,;\s]+)\s*,\s*(\w+)(?:(\()(\w+)(\)))?\s*,\s*([A-Za-z_]\w*)?/i"
                 end="/$/" scheme="AstAppLine"
                 region01="AstDirective" region02="def:Symbol" region03="AstExten" region04="AstPriority"
+                region05="start" region06="AstLabel" region07="end" region08="AstApp"/>
+         <block start="/^\s*(exten)\s*(=&gt;?)\s*([^,;\s]+)\s*,\s*(\w+)(?:(\()(\w+)(\)))?\s*,\s*([A-Za-z_]\w*)?/i"
+                end="/$/" scheme="AstAppLine"
+                region01="def:Error" region02="def:Symbol" region03="AstExten" region04="AstPriority"
                 region05="start" region06="AstLabel" region07="end" region08="AstApp"/>
 
          <!-- same => приоритет(метка),Приложение(аргументы)
               группы: 1 same, 2 =>, 3 приоритет, 4 "(", 5 метка, 6 ")", 7 приложение -->
-         <block start="/^\s*(same)\s*(=&gt;?)\s*(\w+)(?:(\()(\w+)(\)))?\s*,\s*([A-Za-z_]\w*)?/i"
+         <block start="/^(?:(?:(?:[^\(\)\{\}\[\];\\]|\\.)|[\(\{\[](?:(?:[^\(\)\{\}\[\];\\]|\\.)|[\(\{\[](?:(?:[^\(\)\{\}\[\];\\]|\\.)|[\(\{\[](?:(?:[^\(\)\{\}\[\];\\]|\\.)|[\(\{\[](?:(?:[^\(\)\{\}\[\];\\]|\\.)|[\(\{\[](?:(?:[^\(\)\{\}\[\];\\]|\\.)|[\(\{\[](?:(?:[^\(\)\{\}\[\];\\]|\\.)|[\(\{\[](?:(?:[^\(\)\{\}\[\];\\]|\\.)|[\(\{\[](?:(?:[^\(\)\{\}\[\];\\]|\\.)|[\(\{\[](?:(?:[^\(\)\{\}\[\];\\]|\\.))*[\)\}\]])*[\)\}\]])*[\)\}\]])*[\)\}\]])*[\)\}\]])*[\)\}\]])*[\)\}\]])*[\)\}\]])*[\)\}\]])*(?:;.*)?$)?=\s*(same)\s*(=&gt;?)\s*(\w+)(?:(\()(\w+)(\)))?\s*,\s*([A-Za-z_]\w*)?/i"
                 end="/$/" scheme="AstAppLine"
                 region01="AstDirective" region02="def:Symbol" region03="AstPriority"
+                region04="start" region05="AstLabel" region06="end" region07="AstApp"/>
+         <block start="/^\s*(same)\s*(=&gt;?)\s*(\w+)(?:(\()(\w+)(\)))?\s*,\s*([A-Za-z_]\w*)?/i"
+                end="/$/" scheme="AstAppLine"
+                region01="def:Error" region02="def:Symbol" region03="AstPriority"
                 region04="start" region05="AstLabel" region06="end" region07="AstApp"/>
 
          <!-- include => контекст -->

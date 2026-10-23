@@ -15,7 +15,15 @@
   <assign name="def:NumberFloat" fore="#00E080"/>
   <assign name="def:NumberSuffix" fore="#008000"/>
 
+  <!-- Добавь рядом с остальными <assign> в far2l.hrd (цвета подбери под свой фон) -->
+  <assign name="asterisk:AstBr1" fore="#ffd700"/>
+  <assign name="asterisk:AstBr2" fore="#ff79c6"/>
+  <assign name="asterisk:AstBr3" fore="#50fa7b"/>
+  <assign name="asterisk:AstBr4" fore="#ffb86c"/>
+  <assign name="asterisk:AstBr5" fore="#bd93f9"/>
+  <assign name="asterisk:AstBr6" fore="#c0c0c0"/>
   <assign name="asterisk:AstStringEdge" fore="#aeff00"/>
+
   <assign name="def:String" fore="#88ee88"/>
   <assign name="def:StringContent" fore="#999911" style='1'/>
   <assign name="def:StringEdge" fore="#40a000"/>
