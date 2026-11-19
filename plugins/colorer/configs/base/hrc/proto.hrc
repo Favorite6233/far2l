@@ -474,7 +474,7 @@
     </prototype>
     <prototype name="jScript" group="inet" description="JavaScript">
         <location link="inet/jscript.hrc" />
-        <filename>/\.(cjs|mjs|js|mocha)$/i</filename>
+        <filename>/\.(cjs|mjs|js|mocha|pac)$/i</filename>
     </prototype>
     <prototype name="typescript" group="inet" description="TypeScript">
         <location link="inet/typescript.hrc" />
