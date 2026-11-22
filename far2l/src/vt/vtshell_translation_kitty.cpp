@@ -295,8 +295,11 @@ std::string VT_TranslateKeyToKitty(const KEY_EVENT_RECORD &KeyEvent, int flags, 
 		case VK_OEM_2:      base = '/'; break;
 	}
 
-	// Fixme: workaround for far2l tty backend
-	if (base && !keycode) keycode = base;
+	// If the input backend supplied a control code instead of the text key
+	// (KiTTY compact input / win32-input-mode / old wx builds), use the
+	// base-layout key derived from wVirtualKeyCode.
+	// See https://github.com/wxWidgets/wxWidgets/issues/25384
+	if (base && (keycode < 32 || keycode == 127)) keycode = base;
 
 
 	// generate key codes for special keys
